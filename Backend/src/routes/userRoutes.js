@@ -5,7 +5,7 @@ const { getUsers, getUserById, deleteUserById } = require('../controllers/userCo
 var userRoutes=express.Router();
 
   
-userRoutes.get("/",protect,adminOnly,getUsers)
+userRoutes.get("/",protect,getUsers)
 .get("/:id",protect,getUserById)
 .delete("/:id",protect,adminOnly,deleteUserById);
 

@@ -15,7 +15,7 @@ const getTasks = async (req, res) => {
             )
         }
         else {
-            tasks = await task.find({ ...filter, assignedTo: req.user._id },).populate(
+            tasks = await Task.find({ ...filter, assignedTo: req.user._id },).populate(
                 "assignedTo",
                 "name email"
             )
@@ -76,7 +76,7 @@ const createTask = async (req, res) => {
     try {
         const { title, description, priority, status, dueDate, assignedTo } = req.body;
         if (!Array.isArray(assignedTo)) {
-            console.log(assignedTo);
+            
 
             res.status(400).json({
                 "message": "assigned to must be an array"
@@ -92,6 +92,8 @@ const createTask = async (req, res) => {
         })
     }
     catch (err) {
+        console.log(err.message);
+        
         res.status(500).json({
             message: "Internavl server error",
             error: err.message
@@ -128,18 +130,14 @@ const updateTask = async (req, res) => {
 }
 const deleteTask = async (req, res) => {
     try {
-
-    }
-    catch (err) {
-        res.status(500).json({
-            message: "Internavl server error",
-            error: err.message
+        
+        const task=await Task.findByIdAndDelete(req.params.id);
+        
+        
+        res.status(200).json({
+            message:"Deleted Task Successfully",
+            task
         })
-    }
-}
-const updateTaskStatus = async (req, res) => {
-    try {
-
     }
     catch (err) {
         res.status(500).json({
@@ -158,12 +156,18 @@ const getDashboardData = async (req, res) => {
             status: "Pending",
 
         })
+        const inProgressTasks = await Task.countDocuments({
 
+            status: "In Progress",
+
+        })
         const completedTasks = await Task.countDocuments({
 
             status: "Completed",
 
         })
+       
+        
         const overdueTask = await Task.countDocuments({
             status: { $ne: "Completed" },
             dueDate: { $lt: new Date() }
@@ -213,6 +217,7 @@ const getDashboardData = async (req, res) => {
                 pendingTasks,
                 completedTasks,
                 overdueTask,
+                inProgressTasks
 
             },
             charts: {
@@ -253,6 +258,11 @@ const getUserDashboardData = async (req, res) => {
             assignedTo: uid,
             status: { $ne: "Completed" },
             dueDate: { $lt: new Date() }
+        })
+        const inProgressTasks = await Task.countDocuments({
+            assignedTo: uid,
+            status: "In Progress",
+
         })
         
         
@@ -302,6 +312,7 @@ const getUserDashboardData = async (req, res) => {
                     alltasks,
                     pendingTasks,
                     completedTasks,
+                    inProgressTasks,
                     overdueTask,
     
                 },
@@ -323,5 +334,5 @@ const getUserDashboardData = async (req, res) => {
     }
 }
 
-module.exports = { getTaskById, getTasks, updateTask, updateTaskStatus, getDashboardData, getUserDashboardData, deleteTask, createTask }
+module.exports = { getTaskById, getTasks, updateTask, getDashboardData, getUserDashboardData, deleteTask, createTask }
 
